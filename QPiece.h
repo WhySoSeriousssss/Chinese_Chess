@@ -7,15 +7,15 @@
 #include <QPointF>
 #include <QDebug>
 #include "IObserver.h"
-#include "CPiece_Model.h"
+#include "CPiece.h"
 #include "Common.h"
-#include "CGame_Model.h"
+#include "CGame.h"
 
 class QPiece : public QObject, public QGraphicsPixmapItem, public IObserver {
     Q_OBJECT
 public:
     QPiece();
-    QPiece(CPiece_Model *piece, int size);
+    QPiece(CPiece *piece, int size);
     void SetPixmap(QString &file, int size);
 
     QRectF boundingRect() const;
@@ -37,7 +37,7 @@ signals:
     void SendCoordinate(CCoordinate);
 
 private:
-    CPiece_Model *m_CPiece;
+    CPiece *m_CPiece;
 
     int m_iX;
     int m_iY;

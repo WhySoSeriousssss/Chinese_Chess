@@ -1,21 +1,21 @@
-#ifndef CPLAYER_MODEL_H
-#define CPLAYER_MODEL_H
+#ifndef CPLAYER_H
+#define CPLAYER_H
 
 #include "Common.h"
-#include "CPiece_Model.h"
+#include "CPiece.h"
 #include "CCoordinatesSet.h"
 #include <vector>
 
-class CPiece_Model;
+class CPiece;
 
-class CPlayer_Model {
+class CPlayer {
 public:
-    CPlayer_Model();
-    CPlayer_Model(PlayerSide_e side);
-    ~CPlayer_Model();
+    CPlayer();
+    CPlayer(PlayerSide_e side);
+    ~CPlayer();
 
     CCoordinate GetKingPos();
-    void SetKing(CPiece_Model *king);
+    void SetKing(CPiece *king);
 
     void ComputeAllCheckmateCoordinates();
     CCoordinatesSet GetAllCheckmateCoordinates();
@@ -23,12 +23,12 @@ public:
     bool GetIsCheckmated();
     void SetIsCheckmated(bool checkmate);
 
-    std::vector<CPiece_Model *> m_vPieces;
+    std::vector<CPiece *> m_vPieces;
 
 private:
     PlayerSide_e m_eSide;
 
-    CPiece_Model *m_PKing;
+    CPiece *m_PKing;
 
     bool m_bIsCheckmated;
 
@@ -36,4 +36,4 @@ private:
 
 };
 
-#endif // CPlayer_Model_H
+#endif // CPLAYER_H

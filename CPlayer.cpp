@@ -1,28 +1,29 @@
-#include "CPlayer_Model.h"
+#include "CPlayer.h"
 
-CPlayer_Model::CPlayer_Model() :
-    m_PKing(NULL){
+CPlayer::CPlayer() :
+    m_PKing(NULL) {
     m_bIsCheckmated = false;
 }
 
-CPlayer_Model::CPlayer_Model(PlayerSide_e side) {
+CPlayer::CPlayer(PlayerSide_e side) :
+    m_PKing(NULL) {
     m_eSide = side;
     m_bIsCheckmated = false;
 }
 
-CPlayer_Model::~CPlayer_Model() {
+CPlayer::~CPlayer() {
     delete m_PKing;
 }
 
-CCoordinate CPlayer_Model::GetKingPos() {
+CCoordinate CPlayer::GetKingPos() {
     return m_PKing->GetCoordinate();
 }
 
-void CPlayer_Model::SetKing(CPiece_Model *king) {
+void CPlayer::SetKing(CPiece *king) {
     m_PKing = king;
 }
 
-void CPlayer_Model::ComputeAllCheckmateCoordinates() {
+void CPlayer::ComputeAllCheckmateCoordinates() {
     m_vAllCheckmateCoordinates.Clear();
     for (int i = 0; i < m_vPieces.size(); i++) {
         for (int j = 0; j < m_vPieces[i]->GetCheckmateCoordinates().Size(); j++)
@@ -32,14 +33,14 @@ void CPlayer_Model::ComputeAllCheckmateCoordinates() {
     m_vAllCheckmateCoordinates.Print();
 }
 
-bool CPlayer_Model::GetIsCheckmated() {
+bool CPlayer::GetIsCheckmated() {
     return m_bIsCheckmated;
 }
 
-void CPlayer_Model::SetIsCheckmated(bool checkmate) {
+void CPlayer::SetIsCheckmated(bool checkmate) {
     m_bIsCheckmated = checkmate;
 }
 
-CCoordinatesSet CPlayer_Model::GetAllCheckmateCoordinates() {
+CCoordinatesSet CPlayer::GetAllCheckmateCoordinates() {
     return m_vAllCheckmateCoordinates;
 }

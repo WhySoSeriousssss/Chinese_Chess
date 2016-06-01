@@ -1,13 +1,13 @@
-#include "CPiece_Model.h"
+#include "CPiece.h"
 #include <cmath>
 
-CPiece_Model::CPiece_Model() :
+CPiece::CPiece() :
     m_Coordinate() {
     m_iID = 0;
     m_iSteps = 0;
 }
 
-CPiece_Model::CPiece_Model(int x, int y, ChessPieceType_e type, PlayerSide_e side, int index) :
+CPiece::CPiece(int x, int y, ChessPieceType_e type, PlayerSide_e side, int index) :
     m_Coordinate(x, y) {
     m_iSteps = 0;
     m_eSide = side;
@@ -16,78 +16,78 @@ CPiece_Model::CPiece_Model(int x, int y, ChessPieceType_e type, PlayerSide_e sid
     m_bAlive = true;
 }
 
-CPiece_Model::~CPiece_Model() {
+CPiece::~CPiece() {
 
 }
 
-int CPiece_Model::GetID() {
+int CPiece::GetID() {
     return m_iID;
 }
 
-int CPiece_Model::GetID() const {
+int CPiece::GetID() const {
     return m_iID;
 }
 
-CCoordinate CPiece_Model::GetCoordinate() {
+CCoordinate CPiece::GetCoordinate() {
     return m_Coordinate;
 }
 
-CCoordinate CPiece_Model::GetCoordinate() const {
+CCoordinate CPiece::GetCoordinate() const {
     return m_Coordinate;
 }
 
-PlayerSide_e CPiece_Model::GetSide() {
+PlayerSide_e CPiece::GetSide() {
     return m_eSide;
 }
 
-PlayerSide_e CPiece_Model::GetSide() const {
+PlayerSide_e CPiece::GetSide() const {
     return m_eSide;
 }
 
-ChessPieceType_e CPiece_Model::GetType() {
+ChessPieceType_e CPiece::GetType() {
     return m_eType;
 }
 
-ChessPieceType_e CPiece_Model::GetType() const {
+ChessPieceType_e CPiece::GetType() const {
     return m_eType;
 }
 
-CCoordinatesSet CPiece_Model::GetCheckmateCoordinates() {
+CCoordinatesSet CPiece::GetCheckmateCoordinates() {
     return m_vCheckmateCoordinates;
 }
 
-CCoordinatesSet CPiece_Model::GetCheckmateCoordinates() const {
+CCoordinatesSet CPiece::GetCheckmateCoordinates() const {
     return m_vCheckmateCoordinates;
 }
 
-CCoordinatesSet CPiece_Model::GetNextMoves() {
+CCoordinatesSet CPiece::GetNextMoves() {
     return m_vNextMoves;
 }
 
-CCoordinatesSet CPiece_Model::GetNextMoves() const {
+CCoordinatesSet CPiece::GetNextMoves() const {
     return m_vNextMoves;
 }
 
-bool CPiece_Model::GetAlive() {
+bool CPiece::GetAlive() {
     return m_bAlive;
 }
 
-bool CPiece_Model::GetAlive() const {
+bool CPiece::GetAlive() const {
     return m_bAlive;
 }
 
-bool CPiece_Model::Move(CCoordinate newCrd) {
+bool CPiece::Move(CCoordinate newCrd) {
     int x = newCrd.GetXCoordinate();
     int y = newCrd.GetYCoordinate();
 
     if (m_vNextMoves.Contains(newCrd)) {
 
-        if (pBoard->m_iBoard[x][y] != 0) {
-            pGame->KillPiece(pBoard->m_iBoard[x][y]);
+        if (pGame->m_iaBoard[x][y] != 0) {
+            pGame->KillPiece(pGame->m_iaBoard[x][y]);
         }        
-        pBoard->m_iBoard[m_Coordinate.GetXCoordinate()][m_Coordinate.GetYCoordinate()] = 0;
+        pGame->m_iaBoard[m_Coordinate.GetXCoordinate()][m_Coordinate.GetYCoordinate()] = 0;
         m_Coordinate.Reset(x, y);
-        pBoard->m_iBoard[x][y] = m_iID;
+        pGame->m_iaBoard[x][y] = m_iID;
 
         m_iSteps++;
         Notify();
@@ -99,17 +99,17 @@ bool CPiece_Model::Move(CCoordinate newCrd) {
 
 }
 
-void CPiece_Model::BeKilled() {
+void CPiece::BeKilled() {
     m_bAlive = false;
     Notify();
 }
 
-void CPiece_Model::ComputeEffectiveNextMoves() {
+void CPiece::ComputeEffectiveNextMoves() {
     int x = m_Coordinate.GetXCoordinate();
     int y = m_Coordinate.GetYCoordinate();
     int movement = ((m_eSide == RED)? -1: 1);
 
-    int (*p)[14] = pBoard->m_iBoard;
+    int (*p)[14] = pGame->m_iaBoard;
 
     m_vNextMoves.Clear();
 
@@ -311,7 +311,7 @@ void CPiece_Model::ComputeEffectiveNextMoves() {
  //   m_vNextMoves.Print();
 }
 
-void CPiece_Model::ComputeCheckmateCoordinates() {
+void CPiece::ComputeCheckmateCoordinates() {
     m_vCheckmateCoordinates.Clear();
     int temp = (m_eSide == RED? 2: 9);
     int delta = (m_eSide == RED? -1: 1);
@@ -334,8 +334,8 @@ void CPiece_Model::ComputeCheckmateCoordinates() {
 
         if (x >= 5 && x <= 7) {
             int i = y + delta;
-            while (pBoard->m_iBoard[x][i] >= 0) {
-                if (pBoard->m_iBoard[x][i] == 0) {
+            while (pGame->m_iaBoard[x][i] >= 0) {
+                if (pGame->m_iaBoard[x][i] == 0) {
                     if (flag == true)
                         m_vCheckmateCoordinates.AddInPalace(CCoordinate(x, i));
                 }
@@ -343,7 +343,7 @@ void CPiece_Model::ComputeCheckmateCoordinates() {
                     if (flag == false)
                         flag = true;
                     else {
-                        if ((pBoard->m_iBoard[x][i] / 100) == (3 - m_eSide))
+                        if ((pGame->m_iaBoard[x][i] / 100) == (3 - m_eSide))
                             m_vCheckmateCoordinates.AddInPalace(CCoordinate(x, i));
                         break;
                     }
@@ -355,16 +355,16 @@ void CPiece_Model::ComputeCheckmateCoordinates() {
         else if (y >= temp && y <= temp + 2) {
             if (x >= 2 && x <= 5) {
                 for (int i = x + 1; i <= 7; i++) {
-                    if (pBoard->m_iBoard[x][i] == 0) {
+                    if (pGame->m_iaBoard[i][y] == 0) {
                         if (flag == true)
-                            m_vCheckmateCoordinates.AddInPalace(CCoordinate(x, i));
+                            m_vCheckmateCoordinates.AddInPalace(CCoordinate(i, y));
                     }
                     else {
                         if (flag == false)
                             flag = true;
                         else {
-                            if ((pBoard->m_iBoard[x][i] / 100) == (3 - m_eSide))
-                                m_vCheckmateCoordinates.AddInPalace(CCoordinate(x, i));
+                            if ((pGame->m_iaBoard[i][y] / 100) == (3 - m_eSide))
+                                m_vCheckmateCoordinates.AddInPalace(CCoordinate(i, y));
                             break;
                         }
                     }
@@ -372,16 +372,16 @@ void CPiece_Model::ComputeCheckmateCoordinates() {
             }
             else if (x >= 7 && x <= 10) {
                 for (int i = x - 1; i >= 5; i--) {
-                    if (pBoard->m_iBoard[x][i] == 0) {
+                    if (pGame->m_iaBoard[i][y] == 0) {
                         if (flag == true)
-                            m_vCheckmateCoordinates.AddInPalace(CCoordinate(x, i));
+                            m_vCheckmateCoordinates.AddInPalace(CCoordinate(i, y));
                     }
                     else {
                         if (flag == false)
                             flag = true;
                         else {
-                            if ((pBoard->m_iBoard[x][i] / 100) == (3 - m_eSide))
-                                m_vCheckmateCoordinates.AddInPalace(CCoordinate(x, i));
+                            if ((pGame->m_iaBoard[i][y] / 100) == (3 - m_eSide))
+                                m_vCheckmateCoordinates.AddInPalace(CCoordinate(i, y));
                             break;
                         }
                     }
@@ -399,19 +399,19 @@ void CPiece_Model::ComputeCheckmateCoordinates() {
 
         if (m_eSide == RED) {           
             for (; i >= 5; i--) {
-                if (pBoard->m_iBoard[x][i] != 0)
+                if (pGame->m_iaBoard[x][i] != 0)
                     break;
             }
         }
         else {
             for (; i <= 8; i++) {
-                if (pBoard->m_iBoard[x][i] != 0)
+                if (pGame->m_iaBoard[x][i] != 0)
                     break;
             }
         }
 
         if (i == 4 || i == 9) {
-            while (pBoard->m_iBoard[x][i] == 0) {
+            while (pGame->m_iaBoard[x][i] == 0) {
                 m_vCheckmateCoordinates.Add(CCoordinate(x, i));
                 i = i + delta;
             }

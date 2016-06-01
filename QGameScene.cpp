@@ -12,7 +12,7 @@ QGameScene::QGameScene(QObject *parent) :
 
     pGame->Initialize();
 
-    std::vector<CPiece_Model *> tempRed = pGame->GetPiecesRed();
+    std::vector<CPiece *> tempRed = pGame->GetPiecesRed();
     for (int i = 0; i < pGame->GetPiecesRed().size(); i++) {
         m_vPiecesItemRed.push_back( new QPiece(tempRed[i], C_ICONSIZE));
         addItem(m_vPiecesItemRed[i]);
@@ -24,7 +24,7 @@ QGameScene::QGameScene(QObject *parent) :
     }
 
 
-    std::vector<CPiece_Model *> tempBlack = pGame->GetPiecesBlack();
+    std::vector<CPiece *> tempBlack = pGame->GetPiecesBlack();
     for (int i = 0; i < tempRed.size(); i++) {
         m_vPiecesItemBlack.push_back( new QPiece(tempBlack[i], C_ICONSIZE));
         addItem(m_vPiecesItemBlack[i]);

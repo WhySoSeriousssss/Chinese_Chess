@@ -5,7 +5,7 @@
 #include "QPiece.h"
 #include "QBoard.h"
 #include <vector>
-#include "CGame_Model.h"
+#include "CGame.h"
 
 class QGameScene : public QGraphicsScene {
     Q_OBJECT

@@ -15,24 +15,19 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    CPiece_Model.cpp \
-    CBoard_Model.cpp \
-    CGame_Model.cpp \
-    CPlayer_Model.cpp \
     CCoordinate.cpp \
     include/pugixml.cpp \
     util.cpp \
     CCoordinatesSet.cpp \
     QPiece.cpp \
     QBoard.cpp \
-    QGameScene.cpp
+    QGameScene.cpp \
+    CGame.cpp \
+    CPiece.cpp \
+    CPlayer.cpp
 
 HEADERS  += mainwindow.h \
     Common.h \
-    CBoard_Model.h \
-    CPiece_Model.h \
-    CPlayer_Model.h \
-    CGame_Model.h \
     CCoordinate.h \
     include/pugiconfig.hpp \
     include/pugixml.hpp \
@@ -42,7 +37,10 @@ HEADERS  += mainwindow.h \
     QBoard.h \
     IObserver.h \
     ISubject.h \
-    QGameScene.h
+    QGameScene.h \
+    CGame.h \
+    CPiece.h \
+    CPlayer.h
 
 FORMS    += mainwindow.ui
 

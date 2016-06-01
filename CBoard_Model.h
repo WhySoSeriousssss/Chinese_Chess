@@ -3,10 +3,10 @@
 
 #include "util.h"
 #include "Common.h"
-#include "CPiece_Model.h"
+#include "CPiece.h"
 #include <vector>
 
-class CPiece_Model;
+class CPiece;
 
 class CBoard_Model {
 public:

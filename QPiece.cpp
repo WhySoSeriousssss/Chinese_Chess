@@ -4,7 +4,7 @@ QPiece::QPiece() {
 
 }
 
-QPiece::QPiece(CPiece_Model *piece, int size) :
+QPiece::QPiece(CPiece *piece, int size) :
     m_CPiece(piece) {
     m_sIconFile = QString::number(m_CPiece->GetID() / 10 * 10);
     m_sIconFile_2 = m_sIconFile + "_2";

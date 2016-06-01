@@ -6,7 +6,7 @@
 #include "QBoard.h"
 #include "QPiece.h"
 #include "QGameScene.h"
-#include "CGame_Model.h"
+#include "CGame.h"
 
 int main(int argc, char *argv[])
 {
@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     set.Add(CCoordinate(1, 2));
     set.Print();
 
-    CPiece_Model p1(3, 4, CHARIOT, RED, 1, 1);
+    CPiece p1(3, 4, CHARIOT, RED, 1, 1);
 
     pBoard->m_iBoard[3][2] = 210;
     pBoard->m_iBoard[5][4] = 211;

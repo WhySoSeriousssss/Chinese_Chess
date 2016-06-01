@@ -1,21 +1,20 @@
-#ifndef CPIECE_MODEL_H
-#define CPIECE_MODEL_H
+#ifndef CPIECE_H
+#define CPIECE_H
 
 #include "Common.h"
 #include "CCoordinatesSet.h"
-#include "CBoard_Model.h"
-#include "CGame_Model.h"
+#include "CGame.h"
 #include <vector>
 #include "ISubject.h"
 
-class CGame_Model;
-class CPlayer_Model;
+class CGame;
+class CPlayer;
 
-class CPiece_Model : public ISubject {
+class CPiece : public ISubject {
 public:
-    CPiece_Model();
-    CPiece_Model(int x, int y, ChessPieceType_e type, PlayerSide_e side, int index);
-    ~CPiece_Model();
+    CPiece();
+    CPiece(int x, int y, ChessPieceType_e type, PlayerSide_e side, int index);
+    ~CPiece();
 
     int GetID();
     int GetID() const;
@@ -73,4 +72,4 @@ private:
 };
 
 
-#endif // CPiece_Model_H
+#endif // CPIECE_H
