@@ -1,4 +1,4 @@
-#include "QPiece.h"
+#include "view-controller/QPiece.h"
 
 QPiece::QPiece() {
 
@@ -16,6 +16,10 @@ QPiece::QPiece(CPiece *piece, int size) :
     this->setPos(C_X + m_iX * C_DELTA, C_Y + m_iY * C_DELTA);
 
     m_bIsSelected = false;
+}
+
+CPiece* QPiece::GetPiece() {
+    return m_CPiece;
 }
 
 void QPiece::SetPixmap(QString &file, int size) {
@@ -49,7 +53,7 @@ void QPiece::Update() {
 }
 
 
-void QPiece::ChangeIconOnSelection() {
+void QPiece::ToggleIsSelected() {
     m_bIsSelected = !m_bIsSelected;
 
     QPixmap pixmap;
@@ -61,10 +65,6 @@ void QPiece::ChangeIconOnSelection() {
     }
     pixmap = pixmap.scaled(C_ICONSIZE, C_ICONSIZE, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     setPixmap(pixmap);
-}
-
-bool QPiece::Move(CCoordinate newCrd) {
-    return m_CPiece->Move(newCrd);
 }
 
 void QPiece::mousePressEvent(QGraphicsSceneMouseEvent *event) {

@@ -15,32 +15,36 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    CCoordinate.cpp \
     include/pugixml.cpp \
     util.cpp \
-    CCoordinatesSet.cpp \
-    QPiece.cpp \
-    QBoard.cpp \
-    QGameScene.cpp \
-    CGame.cpp \
-    CPiece.cpp \
-    CPlayer.cpp
+    model/CCoordinate.cpp \
+    model/CCoordinatesSet.cpp \
+    model/CGame.cpp \
+    model/CPiece.cpp \
+    model/CPlayer.cpp \
+    model/CMovement.cpp \
+    model/CActionStack.cpp \
+    view-controller/QPiece.cpp \
+    view-controller/QBoard.cpp \
+    view-controller/QGameScene.cpp \
 
 HEADERS  += mainwindow.h \
     Common.h \
-    CCoordinate.h \
     include/pugiconfig.hpp \
     include/pugixml.hpp \
     util.h \
-    CCoordinatesSet.h \
-    QPiece.h \
-    QBoard.h \
     IObserver.h \
     ISubject.h \
-    QGameScene.h \
-    CGame.h \
-    CPiece.h \
-    CPlayer.h
+    model/CCoordinate.h \
+    model/CCoordinatesSet.h \
+    model/CGame.h \
+    model/CPiece.h \
+    model/CPlayer.h \
+    model/CMovement.h \
+    model/CActionStack.h \
+    view-controller/QPiece.h \
+    view-controller/QBoard.h \
+    view-controller/QGameScene.h \
 
 FORMS    += mainwindow.ui
 

@@ -2,8 +2,8 @@
 #define CPIECE_H
 
 #include "Common.h"
-#include "CCoordinatesSet.h"
-#include "CGame.h"
+#include "model/CCoordinatesSet.h"
+#include "model/CGame.h"
 #include <vector>
 #include "ISubject.h"
 
@@ -31,42 +31,43 @@ public:
     CCoordinatesSet GetNextMoves();
     CCoordinatesSet GetNextMoves() const;
 
-    CCoordinatesSet GetCheckmateCoordinates();
-    CCoordinatesSet GetCheckmateCoordinates() const;
+    CCoordinatesSet GetCheckCoordinates();
+    CCoordinatesSet GetCheckCoordinates() const;
 
+    void SetAlive(bool alive);
     bool GetAlive();
     bool GetAlive() const;
 
-    //piece moves to the specific coordinate, kill any enemy piece on it if exists.
-    bool Move(CCoordinate newCrd);
-
-    void BeKilled();
+    bool AttemptsToMove(CCoordinate newCrd);
+    void Move(CCoordinate newCrd);
 
     //
     void ComputeEffectiveNextMoves();
-    void ComputeCheckmateCoordinates();
+    void ComputeCheckCoordinates();
 
 private:
-    //piece's sole id
+    //unique piece id
     int m_iID;
 
     //piece's current x, y coordinates
     CCoordinate m_Coordinate;
 
-    //the set of all of this piece's next possible moves
+    //the set of all possible next moves of that piece
     CCoordinatesSet m_vNextMoves;
 
-    CCoordinatesSet m_vCheckmateCoordinates;
+    //the set of coordinates at which if the enemy's king is, then there will occur a check
+    CCoordinatesSet m_vCheckCoordinates;
 
     //total steps this piece has moved
     int m_iSteps;
 
-    //piece's type
+    //piece type
     ChessPieceType_e m_eType;
 
     //which side does this piece belong to
     PlayerSide_e m_eSide;
 
+    //whether this piece is alive
     bool m_bAlive;
 
 };

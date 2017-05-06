@@ -7,7 +7,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPointF>
 #include <QDebug>
-#include "CCoordinate.h"
+#include "model/CCoordinate.h"
 
 class QBoard : public QObject, public QGraphicsPixmapItem {
     Q_OBJECT

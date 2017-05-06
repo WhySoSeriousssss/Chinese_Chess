@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QMouseEvent>
 #include <QtGui>
-#include "QGameScene.h"
+#include "view-controller/QGameScene.h"
 #include <QGraphicsView>
 #include <QMediaPlayer>
 

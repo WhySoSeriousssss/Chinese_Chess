@@ -7,15 +7,18 @@
 #include <QPointF>
 #include <QDebug>
 #include "IObserver.h"
-#include "CPiece.h"
+#include "model/CPiece.h"
 #include "Common.h"
-#include "CGame.h"
+#include "model/CGame.h"
 
 class QPiece : public QObject, public QGraphicsPixmapItem, public IObserver {
     Q_OBJECT
 public:
     QPiece();
     QPiece(CPiece *piece, int size);
+
+    CPiece *GetPiece();
+
     void SetPixmap(QString &file, int size);
 
     QRectF boundingRect() const;
@@ -24,9 +27,7 @@ public:
     //observer
     void Update();
 
-    void ChangeIconOnSelection();
-
-    bool Move(CCoordinate newCrd);
+    void ToggleIsSelected();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);

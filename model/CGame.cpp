@@ -1,4 +1,4 @@
-#include "CGame.h"
+#include "model/CGame.h"
 
 static CGame _game;
 CGame *pGame = &_game;
@@ -41,34 +41,48 @@ void CGame::Initialize() {
         if (type == KING)
             players[side - 1]->SetKing(piece);
 
-        players[side - 1]->m_vPieces.push_back(piece);
+        players[side - 1]->AddPiece(piece);
         m_iaBoard[x][y] = piece->GetID();
     }
     RefreshPiecesData();
 }
 
-void CGame::KillPiece(int id) {
+void CGame::Save() {
+
+}
+
+void CGame::Load() {
+
+}
+
+void CGame::SetPieceStatus(int id, bool alive, bool test) {
     int n = (int)(id / 100 - 1);
-    for (int i = 0; i < players[n]->m_vPieces.size(); i++) {
-        if (id == players[n]->m_vPieces[i]->GetID()) {
-            players[n]->m_vPieces[i]->BeKilled();
+    for (int i = 0; i < players[n]->GetPieces().size(); i++) {
+        if (id == players[n]->GetPieces()[i]->GetID()) {
+            players[n]->GetPieces()[i]->SetAlive(alive);
+            if (!test)
+                players[n]->GetPieces()[i]->Notify();
             break;
         }
     }
 }
 
 void CGame::RefreshPiecesData() {
-    for (int i = 0; i < players[0]->m_vPieces.size(); i++) {
-        players[0]->m_vPieces[i]->ComputeEffectiveNextMoves();
-        players[0]->m_vPieces[i]->ComputeCheckmateCoordinates();
+    for (int i = 0; i < players[0]->GetPieces().size(); i++) {
+        if (players[0]->GetPieces()[i]->GetAlive() == true) {
+            players[0]->GetPieces()[i]->ComputeEffectiveNextMoves();
+            players[0]->GetPieces()[i]->ComputeCheckCoordinates();
+        }
     }
-    players[0]->ComputeAllCheckmateCoordinates();
+    players[0]->ComputeAllCheckCoordinates();
 
-    for (int i = 0; i < players[1]->m_vPieces.size(); i++) {
-        players[1]->m_vPieces[i]->ComputeEffectiveNextMoves();
-        players[1]->m_vPieces[i]->ComputeCheckmateCoordinates();
+    for (int i = 0; i < players[1]->GetPieces().size(); i++) {
+        if (players[1]->GetPieces()[i]->GetAlive() == true) {
+            players[1]->GetPieces()[i]->ComputeEffectiveNextMoves();
+            players[1]->GetPieces()[i]->ComputeCheckCoordinates();
+        }
     }
-    players[1]->ComputeAllCheckmateCoordinates();
+    players[1]->ComputeAllCheckCoordinates();
 }
 
 void CGame::ChangeTurn() {
@@ -76,23 +90,30 @@ void CGame::ChangeTurn() {
 }
 
 //return if the king's coordinate is in the opponent's AllCheckmateCoordinates
-bool CGame::PlayerIsCheckmated(PlayerSide_e player) {
-    return (players[2 - player]->GetAllCheckmateCoordinates().Contains(players[player - 1]->GetKingPos()));
+bool CGame::PlayerIsInCheck(PlayerSide_e player) {
+    return (players[2 - player]->GetAllCheckCoordinates().Contains(players[player - 1]->GetKingPos()));
 }
 
-void CGame::DetectCheckmate() {
-    if (PlayerIsCheckmated(RED)) {
+int CGame::DetectInCheck() {
+    if (PlayerIsInCheck(RED)) {
         std::cout << "RED is checkmated!\n";
+        return 0;
     }
-    if (PlayerIsCheckmated(BLACK)) {
+    if (PlayerIsInCheck(BLACK)) {
         std::cout << "BLACK is checkmated!\n";
+        return 1;
     }
+    return 2;
+}
+
+int CGame::DetectCheckmate() {
+    return 0;
 }
 
 std::vector<CPiece *> CGame::GetPiecesRed() {
-    return players[0]->m_vPieces;
+    return players[0]->GetPieces();
 }
 
 std::vector<CPiece *> CGame::GetPiecesBlack() {
-    return players[1]->m_vPieces;
+    return players[1]->GetPieces();
 }

@@ -1,4 +1,5 @@
-#include "QGameScene.h"
+#include "view-controller/QGameScene.h"
+#include "model/CMovement.h"
 
 QGameScene::QGameScene(QObject *parent) :
     QGraphicsScene(parent),
@@ -8,7 +9,7 @@ QGameScene::QGameScene(QObject *parent) :
     m_GameBoard = new QBoard(file, 377, 417);
     m_GameBoard->setPos(0, 0);
     addItem(m_GameBoard);
-    connect(m_GameBoard, SIGNAL(SendCoordinate(CCoordinate)), this, SLOT(PieceTriesToMove(CCoordinate)));
+    connect(m_GameBoard, SIGNAL(SendCoordinate(CCoordinate)), this, SLOT(GenerateMovement(CCoordinate)));
 
     pGame->Initialize();
 
@@ -20,7 +21,7 @@ QGameScene::QGameScene(QObject *parent) :
 
         connect(m_vPiecesItemRed[i], SIGNAL(SelectPiece()), this, SLOT(RecordSelectedPiece()));
         connect(m_vPiecesItemRed[i], SIGNAL(isDead()), this, SLOT(RemovePieces()));
-        connect(m_vPiecesItemRed[i], SIGNAL(SendCoordinate(CCoordinate)), this, SLOT(PieceTriesToMove(CCoordinate)));
+        connect(m_vPiecesItemRed[i], SIGNAL(SendCoordinate(CCoordinate)), this, SLOT(GenerateMovement(CCoordinate)));
     }
 
 
@@ -32,7 +33,7 @@ QGameScene::QGameScene(QObject *parent) :
 
         connect(m_vPiecesItemBlack[i], SIGNAL(SelectPiece()), this, SLOT(RecordSelectedPiece()));
         connect(m_vPiecesItemBlack[i], SIGNAL(isDead()), this, SLOT(RemovePieces()));
-        connect(m_vPiecesItemBlack[i], SIGNAL(SendCoordinate(CCoordinate)), this, SLOT(PieceTriesToMove(CCoordinate)));
+        connect(m_vPiecesItemBlack[i], SIGNAL(SendCoordinate(CCoordinate)), this, SLOT(GenerateMovement(CCoordinate)));
     }
 
 }
@@ -45,6 +46,10 @@ QGameScene::~QGameScene() {
     delete m_GameBoard;
 }
 
+void QGameScene::Update() {
+
+}
+
 void QGameScene::RemovePieces() {
     QPiece *_sender = qobject_cast<QPiece *>(QObject::sender());
     removeItem(_sender);
@@ -53,33 +58,39 @@ void QGameScene::RemovePieces() {
 void QGameScene::RecordSelectedPiece() {
     QPiece *_sender = qobject_cast<QPiece *>(QObject::sender());
     if (m_bPieceIsSelected) {
-        m_SelectedPiece->ChangeIconOnSelection();
+        m_SelectedPiece->ToggleIsSelected();
         if (m_SelectedPiece == _sender) {
             m_SelectedPiece = NULL;
             m_bPieceIsSelected = false;
         }
         else {
             m_SelectedPiece = _sender;
-            _sender->ChangeIconOnSelection();
+            _sender->ToggleIsSelected();
         }
     }
 
     else {
         m_SelectedPiece = _sender;
         m_bPieceIsSelected = true;
-        _sender->ChangeIconOnSelection();        
+        _sender->ToggleIsSelected();
     }
 }
 
-void QGameScene::PieceTriesToMove(CCoordinate crd) {
+void QGameScene::GenerateMovement(CCoordinate crd) {
     if (m_bPieceIsSelected) {
-        if (m_SelectedPiece->Move(crd)) {
-            m_SelectedPiece->ChangeIconOnSelection();
+        if (m_SelectedPiece->GetPiece()->AttemptsToMove(crd)) {
+            int pieceid = m_SelectedPiece->GetPiece()->GetID();
+            int x = crd.GetXCoordinate();
+            int y = crd.GetYCoordinate();
+
+            CMovement *move = new CMovement(pieceid, x, y);
+
+            m_SelectedPiece->GetPiece()->Move(crd);
+            m_SelectedPiece->ToggleIsSelected();
             m_SelectedPiece = NULL;
             m_bPieceIsSelected = false;
-            pGame->RefreshPiecesData();
             pGame->ChangeTurn();
-            pGame->DetectCheckmate();
+            pGame->DetectInCheck();
         }
     }
 }

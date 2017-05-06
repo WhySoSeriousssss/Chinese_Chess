@@ -2,24 +2,26 @@
 #define QGAMESCENE_H
 
 #include <QGraphicsScene>
-#include "QPiece.h"
-#include "QBoard.h"
+#include "view-controller/QPiece.h"
+#include "view-controller/QBoard.h"
 #include <vector>
-#include "CGame.h"
+#include "model/CGame.h"
 
-class QGameScene : public QGraphicsScene {
+class QGameScene : public QGraphicsScene, public IObserver {
     Q_OBJECT
 public:
     explicit QGameScene(QObject *parent = 0);
     ~QGameScene();
 
+    //observer
+    void Update();
 protected:
 
 
 private slots:
     void RemovePieces();
     void RecordSelectedPiece();
-    void PieceTriesToMove(CCoordinate crd);
+    void GenerateMovement(CCoordinate crd);
 
 private:
     std::vector<QPiece *> m_vPiecesItemRed;

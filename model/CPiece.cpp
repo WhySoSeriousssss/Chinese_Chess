@@ -1,4 +1,4 @@
-#include "CPiece.h"
+#include "model/CPiece.h"
 #include <cmath>
 
 CPiece::CPiece() :
@@ -52,12 +52,12 @@ ChessPieceType_e CPiece::GetType() const {
     return m_eType;
 }
 
-CCoordinatesSet CPiece::GetCheckmateCoordinates() {
-    return m_vCheckmateCoordinates;
+CCoordinatesSet CPiece::GetCheckCoordinates() {
+    return m_vCheckCoordinates;
 }
 
-CCoordinatesSet CPiece::GetCheckmateCoordinates() const {
-    return m_vCheckmateCoordinates;
+CCoordinatesSet CPiece::GetCheckCoordinates() const {
+    return m_vCheckCoordinates;
 }
 
 CCoordinatesSet CPiece::GetNextMoves() {
@@ -68,6 +68,10 @@ CCoordinatesSet CPiece::GetNextMoves() const {
     return m_vNextMoves;
 }
 
+void CPiece::SetAlive(bool alive) {
+    m_bAlive = alive;
+}
+
 bool CPiece::GetAlive() {
     return m_bAlive;
 }
@@ -76,31 +80,62 @@ bool CPiece::GetAlive() const {
     return m_bAlive;
 }
 
-bool CPiece::Move(CCoordinate newCrd) {
+bool CPiece::AttemptsToMove(CCoordinate newCrd) {
+    int x0 = m_Coordinate.GetXCoordinate();
+    int y0 = m_Coordinate.GetYCoordinate();
     int x = newCrd.GetXCoordinate();
     int y = newCrd.GetYCoordinate();
 
+    bool check;
     if (m_vNextMoves.Contains(newCrd)) {
+        int original = pGame->m_iaBoard[x][y];
 
-        if (pGame->m_iaBoard[x][y] != 0) {
-            pGame->KillPiece(pGame->m_iaBoard[x][y]);
-        }        
-        pGame->m_iaBoard[m_Coordinate.GetXCoordinate()][m_Coordinate.GetYCoordinate()] = 0;
-        m_Coordinate.Reset(x, y);
+        // ensure that move won't make the player himself get checkmated
+        pGame->m_iaBoard[x0][y0] = 0;
         pGame->m_iaBoard[x][y] = m_iID;
+        m_Coordinate.Reset(x, y);
+        if (original != 0) {
+            pGame->SetPieceStatus(original, false, true);
+        }
+        pGame->RefreshPiecesData();
 
-        m_iSteps++;
-        Notify();
-        return true;
+        check = pGame->PlayerIsInCheck(pGame->m_eCurrentRound);
+
+        pGame->m_iaBoard[x0][y0] = m_iID;
+        pGame->m_iaBoard[x][y] = original;
+        m_Coordinate.Reset(x0, y0);
+        if (original != 0) {
+            pGame->SetPieceStatus(original, true, true);
+        }
+        pGame->RefreshPiecesData();
+
+        if (check) {
+            return false;
+        }
+        else {
+            return true;
+        }
     }
     else {
         return false;
     }
-
 }
 
-void CPiece::BeKilled() {
-    m_bAlive = false;
+void CPiece::Move(CCoordinate newCrd) {
+    int x0 = m_Coordinate.GetXCoordinate();
+    int y0 = m_Coordinate.GetYCoordinate();
+    int x = newCrd.GetXCoordinate();
+    int y = newCrd.GetYCoordinate();
+    int original = pGame->m_iaBoard[x][y];
+
+    pGame->m_iaBoard[x0][y0] = 0;
+    pGame->m_iaBoard[x][y] = m_iID;
+    m_Coordinate.Reset(x, y);
+    if (original != 0) {
+        pGame->SetPieceStatus(original, false, false);
+    }
+    pGame->RefreshPiecesData();
+    m_iSteps++;
     Notify();
 }
 
@@ -311,8 +346,8 @@ void CPiece::ComputeEffectiveNextMoves() {
  //   m_vNextMoves.Print();
 }
 
-void CPiece::ComputeCheckmateCoordinates() {
-    m_vCheckmateCoordinates.Clear();
+void CPiece::ComputeCheckCoordinates() {
+    m_vCheckCoordinates.Clear();
     int temp = (m_eSide == RED? 2: 9);
     int delta = (m_eSide == RED? -1: 1);
 
@@ -322,7 +357,7 @@ void CPiece::ComputeCheckmateCoordinates() {
             int y = m_vNextMoves.Get(i).GetYCoordinate();
 
             if (x >= 5 && x <= 7 && y >= temp && y <= temp + 2)
-                m_vCheckmateCoordinates.Add(CCoordinate(x, y));
+                m_vCheckCoordinates.Add(CCoordinate(x, y));
         }
     }
 
@@ -331,20 +366,19 @@ void CPiece::ComputeCheckmateCoordinates() {
         int y = m_Coordinate.GetYCoordinate();
         bool flag = false;
 
-
         if (x >= 5 && x <= 7) {
             int i = y + delta;
             while (pGame->m_iaBoard[x][i] >= 0) {
                 if (pGame->m_iaBoard[x][i] == 0) {
                     if (flag == true)
-                        m_vCheckmateCoordinates.AddInPalace(CCoordinate(x, i));
+                        m_vCheckCoordinates.AddInPalace(CCoordinate(x, i));
                 }
                 else {
                     if (flag == false)
                         flag = true;
                     else {
                         if ((pGame->m_iaBoard[x][i] / 100) == (3 - m_eSide))
-                            m_vCheckmateCoordinates.AddInPalace(CCoordinate(x, i));
+                            m_vCheckCoordinates.AddInPalace(CCoordinate(x, i));
                         break;
                     }
                 }
@@ -357,14 +391,14 @@ void CPiece::ComputeCheckmateCoordinates() {
                 for (int i = x + 1; i <= 7; i++) {
                     if (pGame->m_iaBoard[i][y] == 0) {
                         if (flag == true)
-                            m_vCheckmateCoordinates.AddInPalace(CCoordinate(i, y));
+                            m_vCheckCoordinates.AddInPalace(CCoordinate(i, y));
                     }
                     else {
                         if (flag == false)
                             flag = true;
                         else {
                             if ((pGame->m_iaBoard[i][y] / 100) == (3 - m_eSide))
-                                m_vCheckmateCoordinates.AddInPalace(CCoordinate(i, y));
+                                m_vCheckCoordinates.AddInPalace(CCoordinate(i, y));
                             break;
                         }
                     }
@@ -374,14 +408,14 @@ void CPiece::ComputeCheckmateCoordinates() {
                 for (int i = x - 1; i >= 5; i--) {
                     if (pGame->m_iaBoard[i][y] == 0) {
                         if (flag == true)
-                            m_vCheckmateCoordinates.AddInPalace(CCoordinate(i, y));
+                            m_vCheckCoordinates.AddInPalace(CCoordinate(i, y));
                     }
                     else {
                         if (flag == false)
                             flag = true;
                         else {
                             if ((pGame->m_iaBoard[i][y] / 100) == (3 - m_eSide))
-                                m_vCheckmateCoordinates.AddInPalace(CCoordinate(i, y));
+                                m_vCheckCoordinates.AddInPalace(CCoordinate(i, y));
                             break;
                         }
                     }
@@ -402,20 +436,37 @@ void CPiece::ComputeCheckmateCoordinates() {
                 if (pGame->m_iaBoard[x][i] != 0)
                     break;
             }
+            if (i == 4) {
+                for (; i >= 2; i--) {
+                    if (pGame->m_iaBoard[x][i] == 0)
+                        m_vCheckCoordinates.Add(CCoordinate(x, i));
+                    else {
+                        if (pGame->m_iaBoard[x][i] / 100 == m_eSide)
+                            m_vCheckCoordinates.Add(CCoordinate(x, i));
+                        break;
+                    }
+                }
+            }
         }
         else {
             for (; i <= 8; i++) {
                 if (pGame->m_iaBoard[x][i] != 0)
                     break;
             }
+            if (i == 9) {
+                for (; i <= 11; i++) {
+                    if (pGame->m_iaBoard[x][i] == 0)
+                        m_vCheckCoordinates.Add(CCoordinate(x, i));
+                    else {
+                        if (pGame->m_iaBoard[x][i] / 100 == m_eSide)
+                            m_vCheckCoordinates.Add(CCoordinate(x, i));
+                        break;
+                    }
+                }
+            }
+
         }
 
-        if (i == 4 || i == 9) {
-            while (pGame->m_iaBoard[x][i] == 0) {
-                m_vCheckmateCoordinates.Add(CCoordinate(x, i));
-                i = i + delta;
-            }
-        }
     }
 
 

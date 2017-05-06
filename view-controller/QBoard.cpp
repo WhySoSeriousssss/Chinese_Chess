@@ -1,4 +1,4 @@
-#include "QBoard.h"
+#include "view-controller/QBoard.h"
 
 QBoard::QBoard() {
 

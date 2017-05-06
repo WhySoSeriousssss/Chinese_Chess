@@ -1,4 +1,4 @@
-#include "CCoordinate.h"
+#include "model/CCoordinate.h"
 
 CCoordinate::CCoordinate() {
     m_iXCoordinate = 0;

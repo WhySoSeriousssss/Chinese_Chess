@@ -1,7 +1,7 @@
 #ifndef CCOORDINATESSET_H
 #define CCOORDINATESSET_H
 
-#include "CCoordinate.h"
+#include "model/CCoordinate.h"
 #include <vector>
 #include <iostream>
 
