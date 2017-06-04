@@ -9,11 +9,11 @@ public:
 
     bool operator ==(const CCoordinate &crd);
 
-    int GetXCoordinate();
-    int GetXCoordinate() const;
+    int GetX();
+    int GetX() const;
 
-    int GetYCoordinate();
-    int GetYCoordinate() const;
+    int GetY();
+    int GetY() const;
 
     void Reset(int newX, int newY);
 

@@ -15,22 +15,22 @@ CCoordinate::~CCoordinate() {
 }
 
 bool CCoordinate::operator ==(const CCoordinate &crd) {
-    return (m_iXCoordinate == crd.GetXCoordinate() && m_iYCoordinate == crd.GetYCoordinate());
+    return (m_iXCoordinate == crd.GetX() && m_iYCoordinate == crd.GetY());
 }
 
-int CCoordinate::GetXCoordinate() {
+int CCoordinate::GetX() {
     return m_iXCoordinate;
 }
 
-int CCoordinate::GetXCoordinate() const {
+int CCoordinate::GetX() const {
     return m_iXCoordinate;
 }
 
-int CCoordinate::GetYCoordinate() {
+int CCoordinate::GetY() {
     return m_iYCoordinate;
 }
 
-int CCoordinate::GetYCoordinate() const {
+int CCoordinate::GetY() const {
     return m_iYCoordinate;
 }
 

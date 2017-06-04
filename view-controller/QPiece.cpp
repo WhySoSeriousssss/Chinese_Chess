@@ -4,22 +4,20 @@ QPiece::QPiece() {
 
 }
 
-QPiece::QPiece(CPiece *piece, int size) :
-    m_CPiece(piece) {
-    m_sIconFile = QString::number(m_CPiece->GetID() / 10 * 10);
+QPiece::QPiece(CPiece *piece, int size) {
+    m_sIconFile = QString::number(piece->GetID() / 10 * 10);
     m_sIconFile_2 = m_sIconFile + "_2";
 
     SetPixmap(m_sIconFile, size);
 
-    m_iX = m_CPiece->GetCoordinate().GetXCoordinate() - 2;
-    m_iY = m_CPiece->GetCoordinate().GetYCoordinate() - 2;
-    this->setPos(C_X + m_iX * C_DELTA, C_Y + m_iY * C_DELTA);
+    m_iID = piece->GetID();
+    m_iX = piece->GetCoordinate().GetX();
+    m_iY = piece->GetCoordinate().GetY();
+    m_iSide = piece->GetSide();
+
+    this->setPos(C_X + (m_iX - 2) * C_DELTA, C_Y + (m_iY - 2) * C_DELTA);
 
     m_bIsSelected = false;
-}
-
-CPiece* QPiece::GetPiece() {
-    return m_CPiece;
 }
 
 void QPiece::SetPixmap(QString &file, int size) {
@@ -28,7 +26,6 @@ void QPiece::SetPixmap(QString &file, int size) {
     pixmap.load(path);
     pixmap = pixmap.scaled(size, size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     setPixmap(pixmap);
-
 }
 
 QRectF QPiece::boundingRect() const {
@@ -39,17 +36,25 @@ QRectF QPiece::boundingRect() const {
 void QPiece::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
     QPixmap pixmap = this->pixmap();
     //QRect rect = pixmap.rect();
-
     painter->drawPixmap(0, 0, C_ICONSIZE, C_ICONSIZE, pixmap);
 }
 
-void QPiece::Update() {
-    if (m_CPiece->GetAlive() == false)
-        emit isDead();
-    m_iX = m_CPiece->GetCoordinate().GetXCoordinate() - 2;
-    m_iY = m_CPiece->GetCoordinate().GetYCoordinate() - 2;
-    this->setPos(C_X + m_iX * C_DELTA, C_X + m_iY * C_DELTA);
+int QPiece::GetID() {
+    return m_iID;
+}
 
+int QPiece::GetX() {
+    return m_iX;
+}
+
+int QPiece::GetY() {
+    return m_iY;
+}
+
+void QPiece::SetPosition(int x, int y) {
+    m_iX = x;
+    m_iY = y;
+    this->setPos(C_X + (m_iX - 2) * C_DELTA, C_X + (m_iY - 2) * C_DELTA);
 }
 
 
@@ -68,11 +73,10 @@ void QPiece::ToggleIsSelected() {
 }
 
 void QPiece::mousePressEvent(QGraphicsSceneMouseEvent *event) {
-
-    if (m_CPiece->GetSide() == pGame->m_eCurrentRound) {
-        emit SelectPiece();
+    if ((pGameInfo->m_side == pGameInfo->m_CurrentRound) && (m_iSide == pGameInfo->m_CurrentRound)) {
+            emit SelectPiece();
     }
     else {
-        emit SendCoordinate(m_CPiece->GetCoordinate());
+        emit SendCoordinate(m_iX, m_iY);
     }
 }

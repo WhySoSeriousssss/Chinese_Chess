@@ -18,34 +18,39 @@ SOURCES += main.cpp\
     include/pugixml.cpp \
     util.cpp \
     model/CCoordinate.cpp \
-    model/CCoordinatesSet.cpp \
     model/CGame.cpp \
     model/CPiece.cpp \
     model/CPlayer.cpp \
     model/CMovement.cpp \
-    model/CActionStack.cpp \
     view-controller/QPiece.cpp \
     view-controller/QBoard.cpp \
     view-controller/QGameScene.cpp \
+    socket/server.cpp \
+    socket/client.cpp \
+    model/CGameInfo.cpp \
+    networkconnectdialog.cpp \
+    socket/networkconnect.cpp
 
 HEADERS  += mainwindow.h \
     Common.h \
     include/pugiconfig.hpp \
     include/pugixml.hpp \
     util.h \
-    IObserver.h \
-    ISubject.h \
     model/CCoordinate.h \
-    model/CCoordinatesSet.h \
     model/CGame.h \
     model/CPiece.h \
     model/CPlayer.h \
     model/CMovement.h \
-    model/CActionStack.h \
     view-controller/QPiece.h \
     view-controller/QBoard.h \
     view-controller/QGameScene.h \
+    socket/server.h \
+    socket/client.h \
+    model/CGameInfo.h \
+    networkconnectdialog.h \
+    socket/networkconnect.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    networkconnectdialog.ui
 
 DISTFILES +=

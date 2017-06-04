@@ -2,18 +2,19 @@
 #define CPIECE_H
 
 #include "Common.h"
-#include "model/CCoordinatesSet.h"
-#include "model/CGame.h"
+#include "model/CGameInfo.h"
+#include "model/CCoordinate.h"
 #include <vector>
-#include "ISubject.h"
 
 class CGame;
 class CPlayer;
 
-class CPiece : public ISubject {
+using namespace std;
+
+class CPiece {
 public:
     CPiece();
-    CPiece(int x, int y, ChessPieceType_e type, PlayerSide_e side, int index);
+    CPiece(int x, int y, ChessPieceType_e type, int side, int index);
     ~CPiece();
 
     int GetID();
@@ -22,24 +23,25 @@ public:
     CCoordinate GetCoordinate();
     CCoordinate GetCoordinate() const;
 
-    PlayerSide_e GetSide();
-    PlayerSide_e GetSide() const;
+    void SetCoordinate(int x, int y);
+
+    int GetSide();
+    int GetSide() const;
 
     ChessPieceType_e GetType();
     ChessPieceType_e GetType() const;
 
-    CCoordinatesSet GetNextMoves();
-    CCoordinatesSet GetNextMoves() const;
+    vector<CCoordinate> GetNextMoves();
+    vector<CCoordinate> GetNextMoves() const;
 
-    CCoordinatesSet GetCheckCoordinates();
-    CCoordinatesSet GetCheckCoordinates() const;
+    vector<CCoordinate> GetCheckCoordinates();
+    vector<CCoordinate> GetCheckCoordinates() const;
 
     void SetAlive(bool alive);
     bool GetAlive();
     bool GetAlive() const;
 
-    bool AttemptsToMove(CCoordinate newCrd);
-    void Move(CCoordinate newCrd);
+    void AddMoves();
 
     //
     void ComputeEffectiveNextMoves();
@@ -53,19 +55,18 @@ private:
     CCoordinate m_Coordinate;
 
     //the set of all possible next moves of that piece
-    CCoordinatesSet m_vNextMoves;
+    vector<CCoordinate> m_vNextMoves;
 
     //the set of coordinates at which if the enemy's king is, then there will occur a check
-    CCoordinatesSet m_vCheckCoordinates;
-
-    //total steps this piece has moved
-    int m_iSteps;
+    vector<CCoordinate> m_vCheckCoordinates;
 
     //piece type
     ChessPieceType_e m_eType;
 
-    //which side does this piece belong to
-    PlayerSide_e m_eSide;
+    // side of the piece
+    int m_iSide;
+
+    int m_iMoves;
 
     //whether this piece is alive
     bool m_bAlive;

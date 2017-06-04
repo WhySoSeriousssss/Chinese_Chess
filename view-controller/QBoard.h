@@ -25,7 +25,7 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 
 signals:
-    void SendCoordinate(CCoordinate);
+    void SendCoordinate(int, int);
 
 private:
 

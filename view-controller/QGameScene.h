@@ -5,27 +5,36 @@
 #include "view-controller/QPiece.h"
 #include "view-controller/QBoard.h"
 #include <vector>
-#include "model/CGame.h"
+#include "model/CPiece.h"
+#include "model/CMovement.h"
 
-class QGameScene : public QGraphicsScene, public IObserver {
+using namespace std;
+
+class QGameScene : public QGraphicsScene {
     Q_OBJECT
 public:
     explicit QGameScene(QObject *parent = 0);
     ~QGameScene();
 
-    //observer
-    void Update();
-protected:
+    void Initialize();
 
+    void SetPiecesReference(vector<CPiece *> r, vector<CPiece *> b);
 
-private slots:
-    void RemovePieces();
+public slots:
+    void RemovePiece(int id);
     void RecordSelectedPiece();
-    void GenerateMovement(CCoordinate crd);
+    void GenerateMovement(int x, int y);
+    void ChangePiecePosition(CMovement *move);
+
+signals:
+    void SendMovement(CMovement*);
 
 private:
-    std::vector<QPiece *> m_vPiecesItemRed;
-    std::vector<QPiece *> m_vPiecesItemBlack;
+    vector<CPiece *> m_vCPR;
+    vector<CPiece *> m_vCPB;
+
+    vector<QPiece *> m_vPiecesItemRed;
+    vector<QPiece *> m_vPiecesItemBlack;
 
     bool m_bPieceIsSelected;
 

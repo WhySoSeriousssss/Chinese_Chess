@@ -32,5 +32,5 @@ void QBoard::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QW
 void QBoard::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     int x = event->pos().x();
     int y = event->pos().y();
-    emit SendCoordinate(CCoordinate((int)((x - 7) / 40 + 2), (int)((y - 7) / 40 + 2)));
+    emit SendCoordinate( (int)((x - 7) / 40 + 2), (int)((y - 7) / 40 + 2) );
 }

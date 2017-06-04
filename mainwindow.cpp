@@ -8,21 +8,25 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    QGameScene *scene = new QGameScene;
+    gameScene = new QGameScene();
+
     QGraphicsView *view = new QGraphicsView;
-    view->setScene(scene);
+    view->setScene(gameScene);
     //view->show();
 
     setCentralWidget(view);
 
     setFixedSize(650, 432);
     setStatusBar(0);
-
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::IntializeScene() {
+    gameScene->Initialize();
 }
 
 void MainWindow::paintEvent(QPaintEvent *)

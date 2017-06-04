@@ -1,40 +1,10 @@
 #include "view-controller/QGameScene.h"
-#include "model/CMovement.h"
+#include <iostream>
 
 QGameScene::QGameScene(QObject *parent) :
     QGraphicsScene(parent),
     m_SelectedPiece(NULL),
     m_bPieceIsSelected(false){
-    QString file = "../Chinese_Chess/Images/CANVAS.GIF";
-    m_GameBoard = new QBoard(file, 377, 417);
-    m_GameBoard->setPos(0, 0);
-    addItem(m_GameBoard);
-    connect(m_GameBoard, SIGNAL(SendCoordinate(CCoordinate)), this, SLOT(GenerateMovement(CCoordinate)));
-
-    pGame->Initialize();
-
-    std::vector<CPiece *> tempRed = pGame->GetPiecesRed();
-    for (int i = 0; i < pGame->GetPiecesRed().size(); i++) {
-        m_vPiecesItemRed.push_back( new QPiece(tempRed[i], C_ICONSIZE));
-        addItem(m_vPiecesItemRed[i]);
-        tempRed[i]->Attach(m_vPiecesItemRed[i]);
-
-        connect(m_vPiecesItemRed[i], SIGNAL(SelectPiece()), this, SLOT(RecordSelectedPiece()));
-        connect(m_vPiecesItemRed[i], SIGNAL(isDead()), this, SLOT(RemovePieces()));
-        connect(m_vPiecesItemRed[i], SIGNAL(SendCoordinate(CCoordinate)), this, SLOT(GenerateMovement(CCoordinate)));
-    }
-
-
-    std::vector<CPiece *> tempBlack = pGame->GetPiecesBlack();
-    for (int i = 0; i < tempRed.size(); i++) {
-        m_vPiecesItemBlack.push_back( new QPiece(tempBlack[i], C_ICONSIZE));
-        addItem(m_vPiecesItemBlack[i]);
-        tempBlack[i]->Attach(m_vPiecesItemBlack[i]);
-
-        connect(m_vPiecesItemBlack[i], SIGNAL(SelectPiece()), this, SLOT(RecordSelectedPiece()));
-        connect(m_vPiecesItemBlack[i], SIGNAL(isDead()), this, SLOT(RemovePieces()));
-        connect(m_vPiecesItemBlack[i], SIGNAL(SendCoordinate(CCoordinate)), this, SLOT(GenerateMovement(CCoordinate)));
-    }
 
 }
 
@@ -46,13 +16,56 @@ QGameScene::~QGameScene() {
     delete m_GameBoard;
 }
 
-void QGameScene::Update() {
+void QGameScene::Initialize() {
+    QString file = "../Chinese_Chess/Images/CANVAS.GIF";
+    m_GameBoard = new QBoard(file, 377, 417);
+    m_GameBoard->setPos(0, 0);
+    addItem(m_GameBoard);
+    connect(m_GameBoard, SIGNAL(SendCoordinate(int, int)), this, SLOT(GenerateMovement(int, int)));
+
+    for (int i = 0; i < m_vCPR.size(); i++) {
+        m_vPiecesItemRed.push_back( new QPiece(m_vCPR[i], C_ICONSIZE));
+        addItem(m_vPiecesItemRed[i]);
+
+        connect(m_vPiecesItemRed[i], SIGNAL(SelectPiece()), this, SLOT(RecordSelectedPiece()));
+        connect(m_vPiecesItemRed[i], SIGNAL(SendCoordinate(int, int)), this, SLOT(GenerateMovement(int, int)));
+    }
+
+
+    for (int i = 0; i < m_vCPB.size(); i++) {
+        m_vPiecesItemBlack.push_back( new QPiece(m_vCPB[i], C_ICONSIZE));
+        addItem(m_vPiecesItemBlack[i]);
+
+        connect(m_vPiecesItemBlack[i], SIGNAL(SelectPiece()), this, SLOT(RecordSelectedPiece()));
+        connect(m_vPiecesItemBlack[i], SIGNAL(SendCoordinate(int, int)), this, SLOT(GenerateMovement(int, int)));
+    }
 
 }
 
-void QGameScene::RemovePieces() {
-    QPiece *_sender = qobject_cast<QPiece *>(QObject::sender());
-    removeItem(_sender);
+void QGameScene::SetPiecesReference(vector<CPiece *> r, vector<CPiece *> b) {
+    m_vCPR = r;
+    m_vCPB = b;
+}
+
+void QGameScene::RemovePiece(int id) {
+    vector<QPiece *> pieces;
+
+    if (id / 100 == 1) { // red piece
+        pieces = m_vPiecesItemRed;
+    }
+    else { //black piece
+        pieces = m_vPiecesItemBlack;
+    }
+    vector<QPiece *>::iterator it = pieces.begin();
+    while (it != pieces.end()) {
+        auto pos = it - pieces.begin();
+        if (id == pieces[pos]->GetID()) {
+            removeItem(pieces[pos]);
+            pieces.erase(it);
+            break;
+        }
+        it++;
+    }
 }
 
 void QGameScene::RecordSelectedPiece() {
@@ -76,21 +89,38 @@ void QGameScene::RecordSelectedPiece() {
     }
 }
 
-void QGameScene::GenerateMovement(CCoordinate crd) {
+void QGameScene::GenerateMovement(int x, int y) {
     if (m_bPieceIsSelected) {
-        if (m_SelectedPiece->GetPiece()->AttemptsToMove(crd)) {
-            int pieceid = m_SelectedPiece->GetPiece()->GetID();
-            int x = crd.GetXCoordinate();
-            int y = crd.GetYCoordinate();
+        int pieceid = m_SelectedPiece->GetID();
 
-            CMovement *move = new CMovement(pieceid, x, y);
+        CMovement *move = new CMovement(pieceid, x, y);
 
-            m_SelectedPiece->GetPiece()->Move(crd);
-            m_SelectedPiece->ToggleIsSelected();
-            m_SelectedPiece = NULL;
-            m_bPieceIsSelected = false;
-            pGame->ChangeTurn();
-            pGame->DetectInCheck();
+        m_SelectedPiece->ToggleIsSelected();
+        m_SelectedPiece = NULL;
+        m_bPieceIsSelected = false;
+
+        emit SendMovement(move);
+    }
+}
+
+void QGameScene::ChangePiecePosition(CMovement *move) {
+    int pid = move->GetPieceID();
+    int x = move->GetX();
+    int y = move->GetY();
+
+    vector<QPiece *> pieces;
+
+    if (pid / 100 == 1) { // red piece
+        pieces = m_vPiecesItemRed;
+    }
+    else { //black piece
+        pieces = m_vPiecesItemBlack;
+    }
+
+    for (int i = 0; i < pieces.size(); i++) {
+        if (pid == pieces[i]->GetID()) {
+            pieces[i]->SetPosition(x, y);
+            break;
         }
     }
 }

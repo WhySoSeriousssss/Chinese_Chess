@@ -2,15 +2,19 @@
 #define CGAME_H
 
 #include "model/CPlayer.h"
-#include "ISubject.h"
-#include <vector>
+#include "model/CMovement.h"
+#include "model/CGameInfo.h"
 #include "include/pugixml.hpp"
 #include "util.h"
+#include <vector>
+#include <QEventLoop>
+#include <QObject>
+#include "socket/networkconnect.h"
 
-class CPlayer;
-class CPiece;
+using namespace std;
 
-class CGame : public ISubject {
+class CGame : public QObject {
+    Q_OBJECT
 public:
 /// member functions
     CGame();
@@ -21,27 +25,49 @@ public:
     void Save();
     void Load();
 
-    void SetPieceStatus(int id, bool alive, bool test);
+    void SetPieceStatus(int id, bool alive);
     void RefreshPiecesData();
     void ChangeTurn();
 
-    bool PlayerIsInCheck(PlayerSide_e player);
+    bool PlayerIsInCheck(int player);
     int DetectInCheck();
     int DetectCheckmate();
 
-    std::vector<CPiece *> GetPiecesRed();
-    std::vector<CPiece *> GetPiecesBlack();
+    vector<CPiece *> GetPiecesRed();
+    vector<CPiece *> GetPiecesBlack();
 
-/// member variables
-    // the board array
-    int m_iaBoard[13][14];
-    // current round
-    PlayerSide_e m_eCurrentRound;
+    bool PieceAttemptsToMove(CMovement* move);
+    void PieceMove(CMovement* move);
+
+    // Game loop
+    void RunLoop();
+
+    void BindNetwork(NetworkConnect *n);
+
+private slots:
+    // receive the movement generated from the controller
+    void ReceiveMovement(CMovement *movement);
+
+public slots:
+    // process the game thread
+    void process();
+
+signals:
+    void MovementReceived();
+
+    void ChangePiecePosition(CMovement*);
+
+    void RemovePiece(int);
+
+    // game thread is finished
+    void finished();
 
 private:
+    CMovement *receivedMovement;
+
     CPlayer* players[2];
 
+    NetworkConnect *network;
 };
 
-extern CGame *pGame;
 #endif // CGAME_H

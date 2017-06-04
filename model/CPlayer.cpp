@@ -5,9 +5,9 @@ CPlayer::CPlayer() :
     m_bIsInCheck = false;
 }
 
-CPlayer::CPlayer(PlayerSide_e side) :
+CPlayer::CPlayer(int side) :
     m_PKing(NULL) {
-    m_eSide = side;
+    m_iSide = side;
     m_bIsInCheck = false;
 }
 
@@ -24,16 +24,16 @@ void CPlayer::SetKing(CPiece *king) {
 }
 
 void CPlayer::ComputeAllCheckCoordinates() {
-    m_vAllCheckCoordinates.Clear();
+    m_vAllCheckCoordinates.clear();
     for (int i = 0; i < m_vPieces.size(); i++) {
         if (m_vPieces[i]->GetAlive() == true) {
-            for (int j = 0; j < m_vPieces[i]->GetCheckCoordinates().Size(); j++)
-                m_vAllCheckCoordinates.Add(m_vPieces[i]->GetCheckCoordinates().Get(j));
+            for (int j = 0; j < m_vPieces[i]->GetCheckCoordinates().size(); j++)
+                m_vAllCheckCoordinates.push_back(m_vPieces[i]->GetCheckCoordinates()[j]);
         }
     }
 
-    std::cout << m_eSide << ": ";
-    m_vAllCheckCoordinates.Print();
+//    std::cout << m_eSide << ": ";
+//    m_vAllCheckCoordinates.Print();
 }
 
 bool CPlayer::GetIsInCheck() {
@@ -44,7 +44,7 @@ void CPlayer::SetIsInCheck(bool check) {
     m_bIsInCheck = check;
 }
 
-CCoordinatesSet CPlayer::GetAllCheckCoordinates() {
+vector<CCoordinate> CPlayer::GetAllCheckCoordinates() {
     return m_vAllCheckCoordinates;
 }
 
@@ -52,6 +52,6 @@ void CPlayer::AddPiece(CPiece *piece) {
     m_vPieces.push_back(piece);
 }
 
-std::vector<CPiece *> CPlayer::GetPieces() {
+vector<CPiece *> CPlayer::GetPieces() {
     return m_vPieces;
 }

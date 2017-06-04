@@ -3,16 +3,15 @@
 
 CPiece::CPiece() :
     m_Coordinate() {
-    m_iID = 0;
-    m_iSteps = 0;
+    m_iMoves = 0;
 }
 
-CPiece::CPiece(int x, int y, ChessPieceType_e type, PlayerSide_e side, int index) :
+CPiece::CPiece(int x, int y, ChessPieceType_e type, int side, int index) :
     m_Coordinate(x, y) {
-    m_iSteps = 0;
-    m_eSide = side;
     m_eType = type;
-    m_iID = m_eSide * 100 + m_eType * 10 + index;
+    m_iSide = side;
+    m_iID = (m_iSide + 1) * 100 + m_eType * 10 + index;
+    m_iMoves = 0;
     m_bAlive = true;
 }
 
@@ -36,12 +35,16 @@ CCoordinate CPiece::GetCoordinate() const {
     return m_Coordinate;
 }
 
-PlayerSide_e CPiece::GetSide() {
-    return m_eSide;
+void CPiece::SetCoordinate(int x, int y) {
+    m_Coordinate.Reset(x, y);
 }
 
-PlayerSide_e CPiece::GetSide() const {
-    return m_eSide;
+int CPiece::GetSide() {
+    return m_iSide;
+}
+
+int CPiece::GetSide() const {
+    return m_iSide;
 }
 
 ChessPieceType_e CPiece::GetType() {
@@ -52,19 +55,19 @@ ChessPieceType_e CPiece::GetType() const {
     return m_eType;
 }
 
-CCoordinatesSet CPiece::GetCheckCoordinates() {
+vector<CCoordinate> CPiece::GetCheckCoordinates() {
     return m_vCheckCoordinates;
 }
 
-CCoordinatesSet CPiece::GetCheckCoordinates() const {
+vector<CCoordinate> CPiece::GetCheckCoordinates() const {
     return m_vCheckCoordinates;
 }
 
-CCoordinatesSet CPiece::GetNextMoves() {
+vector<CCoordinate> CPiece::GetNextMoves() {
     return m_vNextMoves;
 }
 
-CCoordinatesSet CPiece::GetNextMoves() const {
+vector<CCoordinate> CPiece::GetNextMoves() const {
     return m_vNextMoves;
 }
 
@@ -80,113 +83,58 @@ bool CPiece::GetAlive() const {
     return m_bAlive;
 }
 
-bool CPiece::AttemptsToMove(CCoordinate newCrd) {
-    int x0 = m_Coordinate.GetXCoordinate();
-    int y0 = m_Coordinate.GetYCoordinate();
-    int x = newCrd.GetXCoordinate();
-    int y = newCrd.GetYCoordinate();
-
-    bool check;
-    if (m_vNextMoves.Contains(newCrd)) {
-        int original = pGame->m_iaBoard[x][y];
-
-        // ensure that move won't make the player himself get checkmated
-        pGame->m_iaBoard[x0][y0] = 0;
-        pGame->m_iaBoard[x][y] = m_iID;
-        m_Coordinate.Reset(x, y);
-        if (original != 0) {
-            pGame->SetPieceStatus(original, false, true);
-        }
-        pGame->RefreshPiecesData();
-
-        check = pGame->PlayerIsInCheck(pGame->m_eCurrentRound);
-
-        pGame->m_iaBoard[x0][y0] = m_iID;
-        pGame->m_iaBoard[x][y] = original;
-        m_Coordinate.Reset(x0, y0);
-        if (original != 0) {
-            pGame->SetPieceStatus(original, true, true);
-        }
-        pGame->RefreshPiecesData();
-
-        if (check) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-    else {
-        return false;
-    }
-}
-
-void CPiece::Move(CCoordinate newCrd) {
-    int x0 = m_Coordinate.GetXCoordinate();
-    int y0 = m_Coordinate.GetYCoordinate();
-    int x = newCrd.GetXCoordinate();
-    int y = newCrd.GetYCoordinate();
-    int original = pGame->m_iaBoard[x][y];
-
-    pGame->m_iaBoard[x0][y0] = 0;
-    pGame->m_iaBoard[x][y] = m_iID;
-    m_Coordinate.Reset(x, y);
-    if (original != 0) {
-        pGame->SetPieceStatus(original, false, false);
-    }
-    pGame->RefreshPiecesData();
-    m_iSteps++;
-    Notify();
+void CPiece::AddMoves() {
+    m_iMoves++;
 }
 
 void CPiece::ComputeEffectiveNextMoves() {
-    int x = m_Coordinate.GetXCoordinate();
-    int y = m_Coordinate.GetYCoordinate();
-    int movement = ((m_eSide == RED)? -1: 1);
+    int x = m_Coordinate.GetX();
+    int y = m_Coordinate.GetY();
+    int movement = ((m_iSide == 0)? -1: 1);
 
-    int (*p)[14] = pGame->m_iaBoard;
+    int (*p)[14] = pGameInfo->m_board;
 
-    m_vNextMoves.Clear();
+    m_vNextMoves.clear();
 
     switch (m_eType) {
     case CHARIOT:
         for (int i = x - 1; i >= 2; i--) {
             if (p[i][y] == 0)
-                m_vNextMoves.Add(CCoordinate(i, y));
-            else if (p[i][y] / 100 == m_eSide)
+                m_vNextMoves.push_back(CCoordinate(i, y));
+            else if (p[i][y] / 100 == m_iSide + 1)
                 break;
             else {
-                m_vNextMoves.Add(CCoordinate(i, y));
+                m_vNextMoves.push_back(CCoordinate(i, y));
                 break;
             }
         }
         for (int i = x + 1; i <= 10; i++) {
             if (p[i][y] == 0)
-                m_vNextMoves.Add(CCoordinate(i, y));
-            else if (p[i][y] / 100 == m_eSide)
+                m_vNextMoves.push_back(CCoordinate(i, y));
+            else if (p[i][y] / 100 == m_iSide + 1)
                 break;
             else {
-                m_vNextMoves.Add(CCoordinate(i, y));
+                m_vNextMoves.push_back(CCoordinate(i, y));
                 break;
             }
         }
         for (int i = y - 1; i >= 2; i--) {
             if (p[x][i] == 0)
-                m_vNextMoves.Add(CCoordinate(x, i));
-            else if (p[x][i] / 100 == m_eSide)
+                m_vNextMoves.push_back(CCoordinate(x, i));
+            else if (p[x][i] / 100 == m_iSide + 1)
                 break;
             else {
-                m_vNextMoves.Add(CCoordinate(x, i));
+                m_vNextMoves.push_back(CCoordinate(x, i));
                 break;
             }
         }
         for (int i = y + 1; i <= 11; i++) {
             if (p[x][i] == 0)
-                m_vNextMoves.Add(CCoordinate(x, i));
-            else if (p[x][i] / 100 == m_eSide)
+                m_vNextMoves.push_back(CCoordinate(x, i));
+            else if (p[x][i] / 100 == m_iSide + 1)
                 break;
             else {
-                m_vNextMoves.Add(CCoordinate(x, i));
+                m_vNextMoves.push_back(CCoordinate(x, i));
                 break;
             }
         }
@@ -194,66 +142,66 @@ void CPiece::ComputeEffectiveNextMoves() {
 
     case HORSE:
         if (p[x - 1][y] == 0) {
-            if (p[x - 2][y - 1] == 0 || (p[x - 2][y - 1]) / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x - 2, y - 1));
-            if (p[x - 2][y + 1] == 0 || (p[x - 2][y + 1]) / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x - 2, y + 1));
+            if (p[x - 2][y - 1] == 0 || (p[x - 2][y - 1]) / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x - 2, y - 1));
+            if (p[x - 2][y + 1] == 0 || (p[x - 2][y + 1]) / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x - 2, y + 1));
         }
         if (p[x + 1][y] == 0) {
-            if (p[x + 2][y - 1] == 0 || (p[x + 2][y - 1]) / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x + 2, y - 1));
-            if (p[x + 2][y + 1] == 0 || (p[x + 2][y + 1]) / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x + 2, y + 1));
+            if (p[x + 2][y - 1] == 0 || (p[x + 2][y - 1]) / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x + 2, y - 1));
+            if (p[x + 2][y + 1] == 0 || (p[x + 2][y + 1]) / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x + 2, y + 1));
         }
         if (p[x][y + 1] == 0) {
-            if (p[x - 1][y + 2] == 0 || (p[x - 1][y + 2]) / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x - 1, y + 2));
-            if (p[x + 1][y + 2] == 0 || (p[x + 1][y + 2]) / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x + 1, y + 2));
+            if (p[x - 1][y + 2] == 0 || (p[x - 1][y + 2]) / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x - 1, y + 2));
+            if (p[x + 1][y + 2] == 0 || (p[x + 1][y + 2]) / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x + 1, y + 2));
         }
         if (p[x][y - 1] == 0) {
-            if (p[x - 1][y - 2] == 0 || (p[x - 1][y - 2]) / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x - 1, y - 2));
-            if (p[x + 1][y - 2] == 0 || (p[x + 1][y - 2]) / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x + 1, y - 2));
+            if (p[x - 1][y - 2] == 0 || (p[x - 1][y - 2]) / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x - 1, y - 2));
+            if (p[x + 1][y - 2] == 0 || (p[x + 1][y - 2]) / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x + 1, y - 2));
         }
         break;
 
     case ELEPHANT:
         if (p[x - 1][y - 1] == 0)
-            if (p[x - 2][y - 2] == 0 || p[x - 2][y - 2] / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x - 2, y - 2));
+            if (p[x - 2][y - 2] == 0 || p[x - 2][y - 2] / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x - 2, y - 2));
         if (p[x - 1][y + 1] == 0)
-            if (p[x - 2][y + 2] == 0 || p[x - 2][y + 2] / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x - 2, y + 2));
+            if (p[x - 2][y + 2] == 0 || p[x - 2][y + 2] / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x - 2, y + 2));
         if (p[x + 1][y + 1] == 0)
-            if (p[x + 2][y + 2] == 0 || p[x + 2][y + 2] / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x + 2, y + 2));
+            if (p[x + 2][y + 2] == 0 || p[x + 2][y + 2] / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x + 2, y + 2));
         if (p[x + 1][y - 1] == 0)
-            if (p[x + 2][y - 2] == 0 || p[x + 2][y - 2] / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x + 2, y - 2));
+            if (p[x + 2][y - 2] == 0 || p[x + 2][y - 2] / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x + 2, y - 2));
         break;
 
     case MANDARIN:
-        if (p[x - 1][y - 1] == 0 || p[x - 1][y - 1] / 100 == (3 - m_eSide))
-            m_vNextMoves.AddInPalace(CCoordinate(x - 1, y - 1));
-        if (p[x - 1][y + 1] == 0 || p[x - 1][y + 1] / 100 == (3 - m_eSide))
-            m_vNextMoves.AddInPalace(CCoordinate(x - 1, y + 1));
-        if (p[x + 1][y + 1] == 0 || p[x + 1][y + 1] / 100 == (3 - m_eSide))
-            m_vNextMoves.AddInPalace(CCoordinate(x + 1, y + 1));
-        if (p[x + 1][y - 1] == 0 || p[x + 1][y - 1] / 100 == (3 - m_eSide))
-            m_vNextMoves.AddInPalace(CCoordinate(x + 1, y - 1));
+        if (p[x - 1][y - 1] == 0 || p[x - 1][y - 1] / 100 == (2 - m_iSide))
+            m_vNextMoves.push_back(CCoordinate(x - 1, y - 1));
+        if (p[x - 1][y + 1] == 0 || p[x - 1][y + 1] / 100 == (2 - m_iSide))
+            m_vNextMoves.push_back(CCoordinate(x - 1, y + 1));
+        if (p[x + 1][y + 1] == 0 || p[x + 1][y + 1] / 100 == (2 - m_iSide))
+            m_vNextMoves.push_back(CCoordinate(x + 1, y + 1));
+        if (p[x + 1][y - 1] == 0 || p[x + 1][y - 1] / 100 == (2 - m_iSide))
+            m_vNextMoves.push_back(CCoordinate(x + 1, y - 1));
         break;
 
     case KING:
-        if (p[x][y - 1] == 0 || p[x][y - 1] / 100 == (3 - m_eSide))
-            m_vNextMoves.AddInPalace(CCoordinate(x, y - 1));
-        if (p[x][y + 1] == 0 || p[x][y + 1] / 100 == (3 - m_eSide))
-            m_vNextMoves.AddInPalace(CCoordinate(x, y + 1));
-        if (p[x - 1][y] == 0 || p[x - 1][y] / 100 == (3 - m_eSide))
-            m_vNextMoves.AddInPalace(CCoordinate(x - 1, y));
-        if (p[x + 1][y] == 0 || p[x + 1][y] / 100 == (3 - m_eSide))
-            m_vNextMoves.AddInPalace(CCoordinate(x + 1, y));
+        if (p[x][y - 1] == 0 || p[x][y - 1] / 100 == (2 - m_iSide))
+            m_vNextMoves.push_back(CCoordinate(x, y - 1));
+        if (p[x][y + 1] == 0 || p[x][y + 1] / 100 == (2 - m_iSide))
+            m_vNextMoves.push_back(CCoordinate(x, y + 1));
+        if (p[x - 1][y] == 0 || p[x - 1][y] / 100 == (2 - m_iSide))
+            m_vNextMoves.push_back(CCoordinate(x - 1, y));
+        if (p[x + 1][y] == 0 || p[x + 1][y] / 100 == (2 - m_iSide))
+            m_vNextMoves.push_back(CCoordinate(x + 1, y));
         break;
 
     case CANNON: {
@@ -261,14 +209,14 @@ void CPiece::ComputeEffectiveNextMoves() {
         for (int i = x - 1; i >= 2; i--) {
             if (p[i][y] == 0) {
                 if (flag == false)
-                    m_vNextMoves.Add(CCoordinate(i, y));
+                    m_vNextMoves.push_back(CCoordinate(i, y));
             }
             else {
                 if (flag == false)
                     flag = true;
                 else {
-                    if ((p[i][y] / 100) == (3 - m_eSide))
-                        m_vNextMoves.Add(CCoordinate(i, y));
+                    if ((p[i][y] / 100) == (2 - m_iSide))
+                        m_vNextMoves.push_back(CCoordinate(i, y));
                     break;
                 }
             }
@@ -278,14 +226,14 @@ void CPiece::ComputeEffectiveNextMoves() {
         for (int i = x + 1; i <= 10; i++) {
             if (p[i][y] == 0) {
                 if (flag == false)
-                    m_vNextMoves.Add(CCoordinate(i, y));
+                    m_vNextMoves.push_back(CCoordinate(i, y));
             }
             else {
                 if (flag == false)
                     flag = true;
                 else {
-                    if ((p[i][y] / 100) == (3 - m_eSide))
-                        m_vNextMoves.Add(CCoordinate(i, y));
+                    if ((p[i][y] / 100) == (2 - m_iSide))
+                        m_vNextMoves.push_back(CCoordinate(i, y));
                     break;
                 }
             }
@@ -295,14 +243,14 @@ void CPiece::ComputeEffectiveNextMoves() {
         for (int i = y - 1; i >= 2; i--) {
             if (p[x][i] == 0) {
                 if (flag == false)
-                    m_vNextMoves.Add(CCoordinate(x, i));
+                    m_vNextMoves.push_back(CCoordinate(x, i));
             }
             else {
                 if (flag == false)
                     flag = true;
                 else {
-                    if ((p[x][i] / 100) == (3 - m_eSide))
-                        m_vNextMoves.Add(CCoordinate(x, i));
+                    if ((p[x][i] / 100) == (2 - m_iSide))
+                        m_vNextMoves.push_back(CCoordinate(x, i));
                     break;
                 }
             }
@@ -312,14 +260,14 @@ void CPiece::ComputeEffectiveNextMoves() {
         for (int i = y + 1; i <= 11; i++) {
             if (p[x][i] == 0) {
                 if (flag == false)
-                    m_vNextMoves.Add(CCoordinate(x, i));
+                    m_vNextMoves.push_back(CCoordinate(x, i));
             }
             else {
                 if (flag == false)
                     flag = true;
                 else {
-                    if ((p[x][i] / 100) == (3 - m_eSide))
-                        m_vNextMoves.Add(CCoordinate(x, i));
+                    if ((p[x][i] / 100) == (2 - m_iSide))
+                        m_vNextMoves.push_back(CCoordinate(x, i));
                     break;
                 }
             }
@@ -329,56 +277,57 @@ void CPiece::ComputeEffectiveNextMoves() {
     }
     case PAWN:
         //after the pawn crosses the river, it also can move leftward or rightward
-        if (m_iSteps >= 2) {
-            if (p[x + 1][y] == 0 || p[x + 1][y] / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x + 1, y));
-            if (p[x - 1][y] == 0 || p[x - 1][y] / 100 == (3 - m_eSide))
-                m_vNextMoves.Add(CCoordinate(x - 1, y));
+        if (m_iMoves >= 2) {
+            if (p[x + 1][y] == 0 || p[x + 1][y] / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x + 1, y));
+            if (p[x - 1][y] == 0 || p[x - 1][y] / 100 == (2 - m_iSide))
+                m_vNextMoves.push_back(CCoordinate(x - 1, y));
         }
-        if (p[x][y + movement] == 0 || p[x][y + movement] / 100 == (3 - m_eSide))
-            m_vNextMoves.Add(CCoordinate(x, y + movement));
+        if (p[x][y + movement] == 0 || p[x][y + movement] / 100 == (2 - m_iSide))
+            m_vNextMoves.push_back(CCoordinate(x, y + movement));
         break;
 
     default:
         break;
     }
 
- //   m_vNextMoves.Print();
 }
 
 void CPiece::ComputeCheckCoordinates() {
-    m_vCheckCoordinates.Clear();
-    int temp = (m_eSide == RED? 2: 9);
-    int delta = (m_eSide == RED? -1: 1);
+    m_vCheckCoordinates.clear();
+    int temp = (m_iSide == 0? 2: 9);
+    int delta = (m_iSide == 0? -1: 1);
+
+    int (*board)[14] = pGameInfo->m_board;
 
     if (m_eType == CHARIOT || m_eType == HORSE || m_eType == PAWN) {
-        for (int i = 0; i < m_vNextMoves.Size(); i++) {
-            int x = m_vNextMoves.Get(i).GetXCoordinate();
-            int y = m_vNextMoves.Get(i).GetYCoordinate();
+        for (int i = 0; i < m_vNextMoves.size(); i++) {
+            int x = m_vNextMoves[i].GetX();
+            int y = m_vNextMoves[i].GetY();
 
             if (x >= 5 && x <= 7 && y >= temp && y <= temp + 2)
-                m_vCheckCoordinates.Add(CCoordinate(x, y));
+                m_vCheckCoordinates.push_back(CCoordinate(x, y));
         }
     }
 
     else if (m_eType == CANNON ) {
-        int x = m_Coordinate.GetXCoordinate();
-        int y = m_Coordinate.GetYCoordinate();
+        int x = m_Coordinate.GetX();
+        int y = m_Coordinate.GetY();
         bool flag = false;
 
         if (x >= 5 && x <= 7) {
             int i = y + delta;
-            while (pGame->m_iaBoard[x][i] >= 0) {
-                if (pGame->m_iaBoard[x][i] == 0) {
+            while (board[x][i] >= 0) {
+                if (board[x][i] == 0) {
                     if (flag == true)
-                        m_vCheckCoordinates.AddInPalace(CCoordinate(x, i));
+                        m_vCheckCoordinates.push_back(CCoordinate(x, i));
                 }
                 else {
                     if (flag == false)
                         flag = true;
                     else {
-                        if ((pGame->m_iaBoard[x][i] / 100) == (3 - m_eSide))
-                            m_vCheckCoordinates.AddInPalace(CCoordinate(x, i));
+                        if ((board[x][i] / 100) == (1 - m_iSide))
+                            m_vCheckCoordinates.push_back(CCoordinate(x, i));
                         break;
                     }
                 }
@@ -389,16 +338,16 @@ void CPiece::ComputeCheckCoordinates() {
         else if (y >= temp && y <= temp + 2) {
             if (x >= 2 && x <= 5) {
                 for (int i = x + 1; i <= 7; i++) {
-                    if (pGame->m_iaBoard[i][y] == 0) {
+                    if (board[i][y] == 0) {
                         if (flag == true)
-                            m_vCheckCoordinates.AddInPalace(CCoordinate(i, y));
+                            m_vCheckCoordinates.push_back(CCoordinate(i, y));
                     }
                     else {
                         if (flag == false)
                             flag = true;
                         else {
-                            if ((pGame->m_iaBoard[i][y] / 100) == (3 - m_eSide))
-                                m_vCheckCoordinates.AddInPalace(CCoordinate(i, y));
+                            if ((board[i][y] / 100) == (1 - m_iSide))
+                                m_vCheckCoordinates.push_back(CCoordinate(i, y));
                             break;
                         }
                     }
@@ -406,16 +355,16 @@ void CPiece::ComputeCheckCoordinates() {
             }
             else if (x >= 7 && x <= 10) {
                 for (int i = x - 1; i >= 5; i--) {
-                    if (pGame->m_iaBoard[i][y] == 0) {
+                    if (board[i][y] == 0) {
                         if (flag == true)
-                            m_vCheckCoordinates.AddInPalace(CCoordinate(i, y));
+                            m_vCheckCoordinates.push_back(CCoordinate(i, y));
                     }
                     else {
                         if (flag == false)
                             flag = true;
                         else {
-                            if ((pGame->m_iaBoard[i][y] / 100) == (3 - m_eSide))
-                                m_vCheckCoordinates.AddInPalace(CCoordinate(i, y));
+                            if ((board[i][y] / 100) == (1 - m_iSide))
+                                m_vCheckCoordinates.push_back(CCoordinate(i, y));
                             break;
                         }
                     }
@@ -427,22 +376,22 @@ void CPiece::ComputeCheckCoordinates() {
     }
 
     else if (m_eType == KING) {
-        int x = m_Coordinate.GetXCoordinate();
-        int y = m_Coordinate.GetYCoordinate();
+        int x = m_Coordinate.GetX();
+        int y = m_Coordinate.GetY();
         int i = y + delta;
 
-        if (m_eSide == RED) {           
+        if (m_iSide == 0) {
             for (; i >= 5; i--) {
-                if (pGame->m_iaBoard[x][i] != 0)
+                if (board[x][i] != 0)
                     break;
             }
             if (i == 4) {
                 for (; i >= 2; i--) {
-                    if (pGame->m_iaBoard[x][i] == 0)
-                        m_vCheckCoordinates.Add(CCoordinate(x, i));
+                    if (board[x][i] == 0)
+                        m_vCheckCoordinates.push_back(CCoordinate(x, i));
                     else {
-                        if (pGame->m_iaBoard[x][i] / 100 == m_eSide)
-                            m_vCheckCoordinates.Add(CCoordinate(x, i));
+                        if (board[x][i] / 100 == m_iSide)
+                            m_vCheckCoordinates.push_back(CCoordinate(x, i));
                         break;
                     }
                 }
@@ -450,16 +399,16 @@ void CPiece::ComputeCheckCoordinates() {
         }
         else {
             for (; i <= 8; i++) {
-                if (pGame->m_iaBoard[x][i] != 0)
+                if (board[x][i] != 0)
                     break;
             }
             if (i == 9) {
                 for (; i <= 11; i++) {
-                    if (pGame->m_iaBoard[x][i] == 0)
-                        m_vCheckCoordinates.Add(CCoordinate(x, i));
+                    if (board[x][i] == 0)
+                        m_vCheckCoordinates.push_back(CCoordinate(x, i));
                     else {
-                        if (pGame->m_iaBoard[x][i] / 100 == m_eSide)
-                            m_vCheckCoordinates.Add(CCoordinate(x, i));
+                        if (board[x][i] / 100 == m_iSide)
+                            m_vCheckCoordinates.push_back(CCoordinate(x, i));
                         break;
                     }
                 }

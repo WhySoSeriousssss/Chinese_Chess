@@ -3,36 +3,37 @@
 
 #include "Common.h"
 #include "model/CPiece.h"
-#include "model/CCoordinatesSet.h"
 #include <vector>
+
+using namespace std;
 
 class CPiece;
 
 class CPlayer {
 public:
     CPlayer();
-    CPlayer(PlayerSide_e side);
+    CPlayer(int side);
     ~CPlayer();
 
     CCoordinate GetKingPos();
     void SetKing(CPiece *king);
 
     void ComputeAllCheckCoordinates();
-    CCoordinatesSet GetAllCheckCoordinates();
+    vector<CCoordinate> GetAllCheckCoordinates();
 
     bool GetIsInCheck();
     void SetIsInCheck(bool check);
 
     void AddPiece(CPiece *piece);
 
-    std::vector<CPiece *> GetPieces();
+    vector<CPiece *> GetPieces();
 
 private:
     // player's side/color
-    PlayerSide_e m_eSide;
+    int m_iSide;
 
     // the collection of all pieces a player owns
-    std::vector<CPiece *> m_vPieces;
+    vector<CPiece *> m_vPieces;
 
     // pointer to the "King" piece
     CPiece *m_PKing;
@@ -41,7 +42,7 @@ private:
     bool m_bIsInCheck;
 
     // the collection all checkmate coordiates
-    CCoordinatesSet m_vAllCheckCoordinates;
+    vector<CCoordinate> m_vAllCheckCoordinates;
 
 };
 

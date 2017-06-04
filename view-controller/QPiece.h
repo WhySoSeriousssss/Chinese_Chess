@@ -5,27 +5,28 @@
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
 #include <QPointF>
-#include <QDebug>
-#include "IObserver.h"
 #include "model/CPiece.h"
 #include "Common.h"
-#include "model/CGame.h"
 
-class QPiece : public QObject, public QGraphicsPixmapItem, public IObserver {
+class CPiece;
+
+class QPiece : public QObject, public QGraphicsPixmapItem {
     Q_OBJECT
 public:
     QPiece();
     QPiece(CPiece *piece, int size);
-
-    CPiece *GetPiece();
 
     void SetPixmap(QString &file, int size);
 
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
+    int GetID();
+    int GetX();
+    int GetY();
+
     //observer
-    void Update();
+    void SetPosition(int x, int y);
 
     void ToggleIsSelected();
 
@@ -33,15 +34,15 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 
 signals:
-    void isDead();
     void SelectPiece();
-    void SendCoordinate(CCoordinate);
+    void SendCoordinate(int, int);
 
 private:
-    CPiece *m_CPiece;
 
+    int m_iID;
     int m_iX;
     int m_iY;
+    int m_iSide;
 
     PieceIconStyle_e m_eIconStyle;
 
